@@ -23,6 +23,16 @@ em [SemVer](https://semver.org/lang/pt-BR/) (`MAJOR.MINOR.PATCH`).
    existente; `MAJOR` = mudança que quebra compatibilidade (ex: exige
    migração manual de dado, remove uma rota da API).
 
+## [1.1.0] - 2026-07-26
+
+### Adicionado
+- Suporte a HTTPS, desligado por padrão. Ligado (`HTTPS_ENABLED` no
+  `.env`): frontend redireciona automaticamente HTTP → HTTPS; backend
+  passa a responder só em HTTPS (API consumida por script, sem redirect).
+  Certificado lido de `certs/fullchain.pem`/`certs/privkey.pem` — script
+  `certs/generate-self-signed-cert.sh` gera um autoassinado pra dev/teste;
+  ver README "HTTPS" pra instalar um de verdade (Let's Encrypt ou outra CA).
+
 ## [1.0.0] - 2026-07-26
 
 Primeira versão marcada como estável.

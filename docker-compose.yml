@@ -110,6 +110,9 @@ services:
       # Onde os screenshots do gowitness (GOWITNESS_ENABLED) ficam — o
       # backend só lê daqui pra servir via GET /clients/{client}/screenshots/{id}.
       - ./data/screenshots:/screenshots
+      # Certificado pro HTTPS opcional (ver README "HTTPS") — ignorado se
+      # HTTPS_ENABLED estiver vazio.
+      - ./certs:/certs:ro
     networks:
       - recon-net
     ports:
@@ -118,10 +121,14 @@ services:
       # recon-net (nome de serviço "backend", sempre porta 8000 interna)
       # independente disso; essa porta só importa para acesso direto à API
       # (curl, scripts). Ver README "Segurança" antes de trocar o bind para
-      # 0.0.0.0 sem API_KEY definida.
+      # 0.0.0.0 sem autenticação/HTTPS configurados.
       - "${BACKEND_HOST_BIND}:${BACKEND_PORT}:8000"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      # Esquema (http/https) depende de HTTPS_ENABLED — ver
+      # backend/entrypoint.sh. context desabilitado só verifica que o
+      # processo responde; validação de certificado não é o propósito
+      # aqui (autoassinado em dev não teria CA confiável mesmo).
+      test: ["CMD", "python", "-c", "import os, ssl, urllib.request; scheme = 'https' if os.environ.get('HTTPS_ENABLED') else 'http'; ctx = ssl._create_unverified_context() if scheme == 'https' else None; urllib.request.urlopen(f'{scheme}://localhost:8000/health', context=ctx)"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -178,15 +185,30 @@ services:
     build: ./frontend
     container_name: recon-frontend
     restart: unless-stopped
+    environment:
+      # Só essas duas — não `env_file: .env` inteiro, que traria pro nginx
+      # segredos que ele não usa (senha do Redis/OpenSearch etc.).
+      - HTTPS_ENABLED=${HTTPS_ENABLED:-}
+      - FRONTEND_HTTPS_PORT=${FRONTEND_HTTPS_PORT:-3443}
+    volumes:
+      # Certificado pro HTTPS opcional (ver README "HTTPS") — ignorado se
+      # HTTPS_ENABLED estiver vazio.
+      - ./certs:/certs:ro
     networks:
       - recon-net
     ports:
       # Endereço e porta (host) configuráveis via .env (FRONTEND_HOST_BIND/
       # FRONTEND_PORT, default 127.0.0.1:3000) — porta interna do nginx
       # (80) fica fixa, só o lado exposto ao host muda. Ver README
-      # "Segurança" antes de trocar o bind para 0.0.0.0/LAN sem API_KEY
-      # definida.
+      # "Segurança" antes de trocar o bind para 0.0.0.0/LAN sem
+      # autenticação/HTTPS configurados.
       - "${FRONTEND_HOST_BIND}:${FRONTEND_PORT}:80"
+      # Porta HTTPS — sempre publicada, mas só aceita conexão se
+      # HTTPS_ENABLED estiver ligado (nginx nem escuta em 443 senão).
+      # Fallback ":-3443" é só pra quem já tinha um .env de antes desta
+      # variável existir não quebrar o "docker compose up" por falta dela.
+      # Ver README "HTTPS".
+      - "${FRONTEND_HOST_BIND}:${FRONTEND_HTTPS_PORT:-3443}:443"
     healthcheck:
       # 127.0.0.1 explícito: o nginx da imagem não escuta em ::1 (IPv6), e
       # "localhost" resolve pra ::1 primeiro dentro do container.

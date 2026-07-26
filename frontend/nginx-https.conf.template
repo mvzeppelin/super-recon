@@ -1,0 +1,54 @@
+# Usado só quando HTTPS_ENABLED está ligado — ver
+# docker-entrypoint.d/10-https.sh (roda envsubst nisso e escreve o
+# resultado em /etc/nginx/conf.d/default.conf, substituindo a config HTTP
+# simples de nginx.conf). ${FRONTEND_HTTPS_PORT} é a única variável
+# substituída (envsubst restrito só a ela) — todo o resto com "$" aqui é
+# variável do próprio nginx (ex: $host, $request_uri), não do shell.
+
+server {
+    listen 80;
+    server_name _;
+
+    # Único propósito deste bloco: redirecionar tudo pra HTTPS. $host não
+    # inclui porta — por isso a porta HTTPS é colada explicitamente.
+    return 301 https://$host:${FRONTEND_HTTPS_PORT}$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name _;
+
+    ssl_certificate     /certs/fullchain.pem;
+    ssl_certificate_key /certs/privkey.pem;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Mesmos cabeçalhos de segurança de nginx.conf (ver ali o porquê de
+    # cada um), mais Strict-Transport-Security — só faz sentido anunciar
+    # "sempre use HTTPS" depois que HTTPS já está disponível.
+    add_header X-Frame-Options "DENY" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "same-origin" always;
+    add_header Content-Security-Policy "frame-ancestors 'none'" always;
+    add_header Strict-Transport-Security "max-age=63072000" always;
+
+    location /api/ {
+        # Com HTTPS_ENABLED ligado, o backend passa a falar só HTTPS na
+        # porta 8000 (mesmo esquema aqui, senão dá 502 — nginx tentando
+        # HTTP puro contra uma porta que só faz handshake TLS).
+        # proxy_ssl_verify off: o cert do backend é o mesmo autoassinado
+        # (ou o mesmo real) montado em /certs — não há CA externa pra
+        # validar aqui dentro da rede docker, e não faz sentido validar
+        # hostname "backend" contra um cert emitido pro domínio público.
+        proxy_pass https://backend:8000/;
+        proxy_ssl_verify off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        client_max_body_size 6m;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

@@ -4,7 +4,7 @@
 
 🇧🇷 Português | 🇺🇸 [English](README.en.md)
 
-Versão atual: **1.0.0** — ver [CHANGELOG.md](CHANGELOG.md).
+Versão atual: **1.1.0** — ver [CHANGELOG.md](CHANGELOG.md).
 
 Plataforma de reconhecimento (recon) automatizado: dispara ferramentas de
 segurança do Kali Linux contra domínios/IPs de um cliente, normaliza a saída
@@ -698,6 +698,8 @@ super-recon/
 | `OPENSEARCH_HOST_BIND` | IP de bind da porta 9200 no host (padrão `127.0.0.1` — não altere para `0.0.0.0`; é o banco cru, com as credenciais acima). |
 | `BACKEND_HOST_BIND` / `FRONTEND_HOST_BIND` | IP de bind das portas do backend/frontend no host. `127.0.0.1` (padrão) = só local; `0.0.0.0` = acessível de qualquer IP que alcance a máquina (LAN ou internet, se tiver IP público). **Antes de trocar para `0.0.0.0`, troque a senha do usuário `admin` semeado** — ver "Autenticação e usuários". |
 | `BACKEND_PORT` / `FRONTEND_PORT` | Porta exposta no host (padrão `8000`/`3000`). Troque se já estiver em uso — só afeta o lado de fora do container, a porta interna (`8000`/`80`) não muda. |
+| `HTTPS_ENABLED` | Vazio (padrão) = tudo em HTTP. Definida = liga HTTPS (exige certificado em `certs/`) — ver seção "HTTPS". |
+| `FRONTEND_HTTPS_PORT` | Porta HTTPS exposta no host pro frontend (padrão `3443`), só relevante com `HTTPS_ENABLED` ligado. Ver seção "HTTPS". |
 | `ILM_SHORT_RETENTION_DAYS` / `ILM_LONG_RETENTION_DAYS` | Dias até um índice expirar automaticamente (ILM/ISM). Vazio (padrão) = nunca expira. Ver seção "Retenção de dados" abaixo. |
 | `KITERUNNER_WORDLIST` | Nome da wordlist do kiterunner cacheada no build da imagem `kali-tools` (padrão `apiroutes-260227`). Raramente precisa mudar. |
 
@@ -1193,6 +1195,72 @@ própria (`backend/app/wayback_fetch.py`) que:
   comportamento é genérico em `docker_runner.run()`, vale para qualquer
   ferramenta que escreva `output_file` incrementalmente.
 
+## HTTPS
+
+Desligado por padrão (`HTTPS_ENABLED` vazio no `.env`) — tudo em HTTP puro,
+como sempre. Antes de expor o projeto além de `127.0.0.1` (ver "Segurança"
+abaixo), vale a pena ligar.
+
+### Como ligar
+
+1. Coloque um certificado em `./certs/fullchain.pem` e `./certs/privkey.pem`
+   (nomes no padrão Let's Encrypt) — ver "Gerando um certificado
+   autoassinado" e "Instalando um certificado de verdade" abaixo.
+2. No `.env`: `HTTPS_ENABLED=true` (qualquer valor não-vazio liga) e,
+   opcionalmente, `FRONTEND_HTTPS_PORT` (padrão `3443`).
+3. `docker compose build backend frontend && docker compose up -d backend frontend`
+   (checar `GET /jobs/active` antes se algum scan estiver rodando — ver
+   "Uso").
+
+O que muda, ligado:
+
+- **Frontend** (dashboard): a porta HTTP de sempre (`FRONTEND_PORT`, padrão
+  `3000`) passa a só devolver um redirect (`301`) para HTTPS, na porta nova
+  `FRONTEND_HTTPS_PORT` (padrão `3443`). Visitar `http://` continua
+  funcionando — só que agora cai automaticamente em `https://`.
+- **Backend** (API): passa a responder **só em HTTPS**, na mesma
+  `BACKEND_PORT` de sempre (padrão `8000`) — sem redirect. Diferente do
+  frontend, a API é consumida por `curl`/scripts, não "visitada" num
+  navegador; rodar dois processos só para redirecionar não compensa. Depois
+  de ligar, os exemplos de `curl` deste README precisam trocar `http://`
+  por `https://` (e, com certificado autoassinado, adicionar `-k` pra
+  pular a validação — ver abaixo).
+- Sem o certificado nos dois arquivos esperados, `backend` e `frontend`
+  recusam subir (erro claro no log, `docker compose logs backend`/
+  `frontend`) — não sobem "quebrados" silenciosamente em HTTP.
+
+### Gerando um certificado autoassinado (dev/teste)
+
+```bash
+./certs/generate-self-signed-cert.sh
+```
+
+Gera `certs/fullchain.pem` + `certs/privkey.pem`, válidos por ~825 dias,
+`CN=localhost`. O navegador vai acusar "conexão não segura" — **esperado**,
+autoassinado não tem uma CA confiável por trás. Pra desenvolvimento local
+isso é só clicar em "avançar mesmo assim"; se quiser eliminar o aviso,
+importe `certs/fullchain.pem` como autoridade confiável nas configurações
+do seu SO/navegador (fora do escopo deste README — muda por sistema).
+
+### Instalando um certificado de verdade
+
+Qualquer certificado válido serve — só precisa virar esses dois arquivos:
+
+```bash
+cp seu-certificado.pem certs/fullchain.pem
+cp sua-chave-privada.pem certs/privkey.pem
+docker compose up -d backend frontend   # recarrega com o novo certificado
+```
+
+Pra um domínio público (ex: com Let's Encrypt/`certbot`), gere o
+certificado no host normalmente (`certbot certonly --standalone` ou
+similar, com o `docker compose down`/portas liberadas durante a emissão) e
+copie `fullchain.pem`/`privkey.pem` de `/etc/letsencrypt/live/seu-domínio/`
+pra `certs/`. Renovação: como o certificado é só lido de um arquivo no
+host, renovar é copiar os arquivos novos por cima e rodar `docker compose
+up -d backend frontend` de novo (pode ser automatizado num cron/hook de
+renovação do certbot).
+
 ## Segurança / limitações conhecidas
 
 - O `worker` tem `/var/run/docker.sock` montado (necessário para criar os
@@ -1216,6 +1284,9 @@ própria (`backend/app/wayback_fetch.py`) que:
   conheça essa credencial padrão tem acesso total. `OPENSEARCH_HOST_BIND` é
   independente e deve continuar em `127.0.0.1` sempre (é o banco cru, com as
   credenciais admin do OpenSearch, sem relação com o login da aplicação).
+  Antes de expor além de `127.0.0.1`, também vale ligar HTTPS (ver seção
+  "HTTPS" acima) — sem ele, login/senha e o token de sessão trafegam em
+  texto puro pela rede.
 - O sistema de usuários da aplicação é próprio (usuários/sessões/log de
   auditoria guardados em índices do OpenSearch, senha com hash bcrypt) — não
   há integração com LDAP/SSO/OAuth. Adequado ao uso pretendido (equipe

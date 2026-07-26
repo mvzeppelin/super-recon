@@ -26,7 +26,7 @@ from .models import (
     UserResponse,
 )
 
-app = FastAPI(title="super-recon orchestrator", version="1.0.0")
+app = FastAPI(title="super-recon orchestrator", version="1.1.0")
 
 # ?token= (usado pelos links de export/screenshot, ver _extract_token) é uma
 # credencial de sessão em texto puro — sem isso, ela vai inteira pro log de
