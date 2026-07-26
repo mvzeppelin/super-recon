@@ -1,0 +1,57 @@
+# Changelog
+
+Mudanças notáveis deste projeto são documentadas aqui. Formato baseado em
+[Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), versionamento
+em [SemVer](https://semver.org/lang/pt-BR/) (`MAJOR.MINOR.PATCH`).
+
+## Como cortar uma versão
+
+1. Adicione uma seção `## [X.Y.Z] - AAAA-MM-DD` no topo (logo abaixo desta
+   seção), com as mudanças desde a última versão agrupadas em
+   `Adicionado`/`Alterado`/`Corrigido`/`Removido`/`Segurança` — em
+   linguagem humana (o que muda pra quem usa o projeto), não o log de
+   commit cru.
+2. Atualize `"version"` em `frontend/package.json` e `version=` do
+   `FastAPI(...)` em `backend/app/main.py` para o mesmo número.
+3. Commit essas mudanças, depois crie a tag e envie:
+   ```bash
+   git tag -a vX.Y.Z -m "vX.Y.Z"
+   git push origin vX.Y.Z   # tag não sobe sozinha com "git push"
+   ```
+4. Critério pra escolher o número: `PATCH` = correção sem mudar
+   comportamento visível; `MINOR` = feature nova sem quebrar nada
+   existente; `MAJOR` = mudança que quebra compatibilidade (ex: exige
+   migração manual de dado, remove uma rota da API).
+
+## [1.0.0] - 2026-07-26
+
+Primeira versão marcada como estável.
+
+### Adicionado
+- Pipeline de recon em 4 fases (passivo, resolução de domínio/IP,
+  portas/serviços, Fase 4 ativa em toda URL viva), orquestrado via Celery,
+  cada ferramenta rodando em container Kali efêmero.
+- Dashboard React: clientes, histórico de scans, achados por ferramenta
+  com filtros/paginação persistidos na URL, comparação entre scans,
+  detalhe de ativo, relatório executivo (score de risco agregado) e
+  gráficos.
+- Enriquecimento passivo via Shodan e Censys; WPScan, Gowitness
+  (screenshots), Dalfox (XSS) e Kiterunner (rotas de API) na Fase 4 (os
+  três últimos opt-in, com checklist por execução).
+- Wordlists customizadas do gobuster (upload por cliente).
+- Recorrência de scans (alvos salvos com agendamento diário/semanal/
+  mensal) e monitor de saúde da plataforma.
+- Notificação em achado crítico (Slack e/ou webhook genérico).
+- Sistema de autenticação com usuários/papéis (admin/operator/viewer),
+  sessão via token bearer, e log de auditoria das ações que mudam dado.
+- Tela de Configurações: dezenas de opções (timeouts por ferramenta,
+  notificação, integrações externas, limites de upload etc.) editáveis
+  em runtime, sem editar `.env` nem reiniciar.
+- Retenção de dados via ILM/ISM do OpenSearch, scripts de backup/restore.
+- Interface em português e inglês.
+
+### Segurança
+- Rate limiting/lockout de login por username, verificação de senha com
+  timing constante (evita enumerar usuário por tempo de resposta),
+  redação de token de sessão nos logs de acesso, invalidação de sessões
+  ao trocar senha.

@@ -1,0 +1,16 @@
+{
+  "index_patterns": ["*-wordlists"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "wordlist_id": { "type": "keyword" },
+        "filename": { "type": "keyword" },
+        "line_count": { "type": "integer" },
+        "size_bytes": { "type": "integer" }
+      }
+    }
+  }
+}

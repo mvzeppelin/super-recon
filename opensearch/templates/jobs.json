@@ -1,0 +1,19 @@
+{
+  "index_patterns": ["*-jobs"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "status":      { "type": "keyword" },
+        "started_at":  { "type": "date" },
+        "finished_at": { "type": "date" },
+        "cpu_core":    { "type": "integer" },
+        "doc_count":   { "type": "integer" },
+        "error":       { "type": "text" },
+        "container_id": { "type": "keyword" }
+      }
+    }
+  }
+}

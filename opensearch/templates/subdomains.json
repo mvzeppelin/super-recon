@@ -1,0 +1,16 @@
+{
+  "index_patterns": ["*-subdomains"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "subdomain":  { "type": "keyword" },
+        "domain":     { "type": "keyword" },
+        "sources":    { "type": "keyword" },
+        "first_seen": { "type": "date" }
+      }
+    }
+  }
+}

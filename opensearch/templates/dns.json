@@ -1,0 +1,15 @@
+{
+  "index_patterns": ["*-dns"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "subdomain": { "type": "keyword" },
+        "ips":       { "type": "ip" },
+        "resolved":  { "type": "boolean" }
+      }
+    }
+  }
+}

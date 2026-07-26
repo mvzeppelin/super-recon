@@ -1,0 +1,22 @@
+{
+  "index_patterns": ["*-gowitness"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "final_url":         { "type": "keyword" },
+        "status_code":       { "type": "integer" },
+        "title":             { "type": "text" },
+        "perception_hash":   { "type": "keyword" },
+        "tls_protocol":      { "type": "keyword" },
+        "tls_issuer":        { "type": "keyword" },
+        "technologies":      { "type": "keyword" },
+        "failed":            { "type": "boolean" },
+        "failed_reason":     { "type": "text" },
+        "screenshot_id":     { "type": "keyword" }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "policy": {
+    "description": "Retenção padrão — achados de maior valor (nuclei, subdomains etc.) e metadados de execução (jobs, scans): expira após __RETENTION_DAYS__ dias. Prioridade mais baixa que a retenção curta, então só se aplica a índices que não casarem com ela.",
+    "default_state": "active",
+    "states": [
+      {
+        "name": "active",
+        "actions": [],
+        "transitions": [
+          { "state_name": "delete", "conditions": { "min_index_age": "__RETENTION_DAYS__d" } }
+        ]
+      },
+      {
+        "name": "delete",
+        "actions": [{ "delete": {} }],
+        "transitions": []
+      }
+    ],
+    "ism_template": {
+      "index_patterns": ["*-*"],
+      "priority": 1
+    }
+  }
+}

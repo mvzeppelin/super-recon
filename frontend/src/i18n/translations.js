@@ -1,0 +1,413 @@
+// Dicionário único (en) — as chaves são o próprio texto em português usado
+// nos componentes (fallback natural: sem entrada aqui, t() devolve a chave,
+// ou seja, o texto em pt como já é hoje). Não inclui valores de dados
+// (subdomínios, URLs, descrições de achados etc.) — só texto de interface.
+export const en = {
+  // LoginGate / App (logout)
+  Usuário: 'Username',
+  Senha: 'Password',
+  'Usuário ou senha inválidos.': 'Invalid username or password.',
+  'Verificando…': 'Verifying…',
+  Entrar: 'Sign in',
+  sair: 'sign out',
+
+  // App (nav admin-only) / MyAccountPage
+  Usuários: 'Users',
+  'Log de auditoria': 'Audit log',
+  'Você está usando a senha padrão de instalação. Troque agora em "Minha conta".':
+    'You are using the default installation password. Change it now in "My account".',
+  'Trocar senha': 'Change password',
+  'Minha conta': 'My account',
+  'Trocar minha senha': 'Change my password',
+  'Senha atual': 'Current password',
+  'Nova senha': 'New password',
+  'Confirmar nova senha': 'Confirm new password',
+  'A confirmação não bate com a nova senha.': "Confirmation doesn't match the new password.",
+  'Senha alterada com sucesso.': 'Password changed successfully.',
+  Salvar: 'Save',
+  Administrador: 'Admin',
+  Operador: 'Operator',
+  Leitor: 'Viewer',
+
+  // UsersPage (admin-only)
+  'Usuários ({{total}})': 'Users ({{total}})',
+  'Novo usuário': 'New user',
+  usuário: 'username',
+  'senha (mín. 8 caracteres)': 'password (min. 8 characters)',
+  'Criar usuário': 'Create user',
+  'Criando…': 'Creating…',
+  Papel: 'Role',
+  Status: 'Status',
+  'Criado em': 'Created at',
+  'desativado — ativar': 'disabled — enable',
+  'ativo — desativar': 'active — disable',
+  'resetar senha': 'reset password',
+  'nova senha': 'new password',
+  confirmar: 'confirm',
+  'Excluir o usuário "{{username}}"? Essa ação não pode ser desfeita.':
+    'Delete the user "{{username}}"? This action cannot be undone.',
+  'Você não tem permissão pra ver esta página.': "You don't have permission to view this page.",
+
+  // AuditLogPage (admin-only)
+  'Log de auditoria ({{total}})': 'Audit log ({{total}})',
+  Método: 'Method',
+  Rota: 'Route',
+  'Nenhum registro ainda.': 'No records yet.',
+
+  // WorkerStatus
+  'Cancelar {{tool}} em {{target}} (cliente {{client}})?': 'Cancel {{tool}} on {{target}} (client {{client}})?',
+  '{{busy}}/{{total}} execuções em andamento': '{{busy}}/{{total}} executions running',
+  'ocioso · {{total}} workers': 'idle · {{total}} workers',
+  cancelar: 'cancel',
+
+  // ClientsPage / ClientDashboard (ações sobre cliente)
+  'Excluir todos os dados de "{{name}}"? Essa ação não pode ser desfeita.':
+    'Delete all data for "{{name}}"? This action cannot be undone.',
+  'Novo recon': 'New recon',
+  Cliente: 'Client',
+  'Domínios / IPs (um por linha)': 'Domains / IPs (one per line)',
+  'Wordlist do gobuster': 'Gobuster wordlist',
+  'Rápido (common, ~4.6k palavras)': 'Fast (common, ~4.6k words)',
+  'Completo (big, ~20k palavras — mais lento)': 'Complete (big, ~20k words — slower)',
+  'Disparando…': 'Dispatching…',
+  'Iniciar recon': 'Start recon',
+  Clientes: 'Clients',
+  'Carregando…': 'Loading…',
+  'Nenhum cliente com dados ainda.': 'No clients with data yet.',
+  'Excluir {{name}}': 'Delete {{name}}',
+
+  'Limpar todos os dados de "{{client}}"? O cliente continua existindo, mas achados e histórico de execuções serão apagados (como se fosse recém-criado). Essa ação não pode ser desfeita.':
+    'Clear all data for "{{client}}"? The client keeps existing, but findings and execution history will be erased (as if newly created). This action cannot be undone.',
+  'Cancelar todas as execuções em andamento de "{{client}}"?': 'Cancel all running executions for "{{client}}"?',
+  'Nenhuma execução em andamento para esse cliente.': 'No running executions for this client.',
+  '■ cancelar scans em andamento': '■ cancel running scans',
+  '↺ limpar dados': '↺ clear data',
+  '⚠ excluir cliente': '⚠ delete client',
+  '← clientes': '← clients',
+  'Novo recon para {{client}}': 'New recon for {{client}}',
+  Personalizada: 'Custom',
+  'Selecione uma wordlist enviada': 'Select an uploaded wordlist',
+  'Preencha o nome do cliente acima para enviar/selecionar uma wordlist.':
+    'Fill in the client name above to upload/select a wordlist.',
+  linhas: 'lines',
+  'ou envie uma nova:': 'or upload a new one:',
+  'Enviando…': 'Uploading…',
+  Enviar: 'Upload',
+  'Excluir esta wordlist? Se algum scan em andamento ainda for usá-la no gobuster, ele cai para o perfil "common" em vez de falhar.':
+    'Delete this wordlist? If a running scan still needs it for gobuster, it falls back to the "common" profile instead of failing.',
+  'Wordlists customizadas ({{total}})': 'Custom wordlists ({{total}})',
+  'Nenhuma wordlist enviada ainda.': 'No wordlists uploaded yet.',
+  Arquivo: 'File',
+  Linhas: 'Lines',
+  'Tamanho (bytes)': 'Size (bytes)',
+  excluir: 'delete',
+  'Rodar recon': 'Run recon',
+  'Nenhum achado ainda.': 'No findings yet.',
+  'Visão geral': 'Overview',
+  Achados: 'Findings',
+  'Ver tudo sobre este ativo': 'View everything about this asset',
+  'Detalhe do ativo': 'Asset detail',
+  'subdomínio, IP ou URL exata': 'subdomain, IP, or exact URL',
+  Buscar: 'Search',
+  'Digite um valor pra ver tudo que as ferramentas acharam sobre ele.': 'Enter a value to see everything the tools found about it.',
+  'Nada encontrado para "{{value}}".': 'Nothing found for "{{value}}".',
+  'ver tabela completa': 'view full table',
+  Scans: 'Scans',
+  Wordlists: 'Wordlists',
+  Recorrência: 'Recurrence',
+  'Scans ({{total}})': 'Scans ({{total}})',
+  'Nenhum scan registrado ainda.': 'No scans recorded yet.',
+  Alvos: 'Targets',
+  Wordlist: 'Wordlist',
+  Ferramentas: 'Tools',
+  'Ferramentas (Fase 4)': 'Tools (Phase 4)',
+  '{{count}}/8': '{{count}}/8',
+  Duração: 'Duration',
+  'em andamento': 'in progress',
+  'ver execuções': 'view executions',
+  'excluir scan selecionado': 'delete selected scan',
+  'Excluir este scan? Todos os achados e execuções desse scan serão apagados. Essa ação não pode ser desfeita.':
+    'Delete this scan? All findings and executions from this scan will be erased. This action cannot be undone.',
+  'comparar selecionados': 'compare selected',
+  'ver mudanças desde a anterior': 'view changes since previous',
+  'Execuções ({{total}})': 'Executions ({{total}})',
+  Total: 'Total',
+  Concluídas: 'Completed',
+  'Em execução': 'Running',
+  Pendentes: 'Pending',
+  Canceladas: 'Cancelled',
+  Erros: 'Errors',
+  'Achados por ferramenta ({{total}} documentos)': 'Findings by tool ({{total}} documents)',
+
+  // RiskScoreCard (relatório executivo)
+  'Nível de risco': 'Risk level',
+  'baixar relatório executivo (PDF)': 'download executive report (PDF)',
+  'pontuação: {{score}}': 'score: {{score}}',
+  '{{count}} achado(s) crítico(s) identificado(s)': '{{count}} critical finding(s) identified',
+  'Nenhum achado com severidade identificado ainda.': 'No severity-tagged findings yet.',
+  'Superfície de ataque (contexto — não entra na pontuação)': 'Attack surface (context — not part of the score)',
+  'Vulnerabilidades WordPress': 'WordPress vulnerabilities',
+  'Portas abertas': 'Open ports',
+  Nenhum: 'None',
+  Baixo: 'Low',
+  Médio: 'Medium',
+  Alto: 'High',
+  Crítico: 'Critical',
+  Informativo: 'Informational',
+
+  // Recorrência (ClientDashboard)
+  'Editar alvo salvo': 'Edit saved target',
+  'Novo alvo salvo / recorrência': 'New saved target / recurrence',
+  'Ativar recorrência automática': 'Enable automatic recurrence',
+  Periodicidade: 'Periodicity',
+  Diário: 'Daily',
+  Semanal: 'Weekly',
+  Mensal: 'Monthly',
+  'Dia da semana': 'Day of week',
+  'Segunda-feira': 'Monday',
+  'Terça-feira': 'Tuesday',
+  'Quarta-feira': 'Wednesday',
+  'Quinta-feira': 'Thursday',
+  'Sexta-feira': 'Friday',
+  Sábado: 'Saturday',
+  Domingo: 'Sunday',
+  'Dia do mês': 'Day of month',
+  'Horário (UTC)': 'Time (UTC)',
+  'Salvando…': 'Saving…',
+  'Salvar alterações': 'Save changes',
+  'Salvar alvo': 'Save target',
+  'cancelar edição': 'cancel editing',
+  'Recorrência ({{total}})': 'Recurrence ({{total}})',
+  'Nenhum alvo salvo ainda.': 'No saved targets yet.',
+  'Próxima execução': 'Next run',
+  'Última execução': 'Last run',
+  Ativo: 'Active',
+  'Ativar/desativar recorrência': 'Enable/disable recurrence',
+  'rodar agora': 'run now',
+  editar: 'edit',
+  'Excluir este alvo salvo? A recorrência automática (se ativa) para de disparar. Essa ação não pode ser desfeita.':
+    'Delete this saved target? Automatic recurrence (if active) stops firing. This action cannot be undone.',
+  'Toda {{weekday}}': 'Every {{weekday}}',
+  'Dia {{day}} do mês': 'Day {{day}} of the month',
+  'Não configurado': 'Not configured',
+
+  // ScanCompare
+  'Selecione dois scans no painel do cliente para comparar.': 'Select two scans on the client panel to compare.',
+  'Comparar scans': 'Compare scans',
+  'Novos': 'New',
+  'Resolvidos': 'Resolved',
+  'Inalterados': 'Unchanged',
+  'Novos ({{total}})': 'New ({{total}})',
+  'Resolvidos ({{total}})': 'Resolved ({{total}})',
+  'Inalterados ({{total}})': 'Unchanged ({{total}})',
+
+  // ToolFindings
+  'Cancelar {{tool}} em {{target}}?': 'Cancel {{tool}} on {{target}}?',
+  'Excluir {{count}} achado(s) selecionado(s)? Essa ação não pode ser desfeita.':
+    'Delete {{count}} selected finding(s)? This action cannot be undone.',
+  'Agrupa achados idênticos vindos de tools/scans diferentes numa linha só':
+    'Groups identical findings from different tools/scans into a single row',
+  'exportar únicos': 'export unique',
+  '{{count}} selecionado(s)': '{{count}} selected',
+  '✕ excluir selecionados': '✕ delete selected',
+  'limpar seleção': 'clear selection',
+  'página {{page}} de {{totalPages}} · {{total}} resultados': 'page {{page}} of {{totalPages}} · {{total}} results',
+  '← anterior': '← previous',
+  'próxima →': 'next →',
+
+  // FiltersBar
+  'Buscar…': 'Search…',
+  'Todas as origens': 'All sources',
+  'Todos os scans': 'All scans',
+  'Filtrar por execução de scan': 'Filter by scan execution',
+  'Todas as severidades': 'All severities',
+  'Todos os status': 'All statuses',
+
+  // DataTable
+  'Nenhum resultado encontrado.': 'No results found.',
+  'Selecionar todos': 'Select all',
+  'Selecionar linha': 'Select row',
+
+  // IpProvenance
+  'Como esse IP foi descoberto': 'How this IP was found',
+  'Erro ao buscar origem.': 'Failed to look up origin.',
+  'IP do domínio raiz {{target}}': "Root domain's IP ({{target}})",
+  'Resolvido do subdomínio {{subdomains}} (dnsx)': 'Resolved from subdomain {{subdomains}} (dnsx)',
+  'IP informado diretamente no alvo do scan ({{target}})': 'IP given directly as the scan target ({{target}})',
+  'Não foi possível determinar a origem desse IP.': "Couldn't determine how this IP was found.",
+
+  // ExportButtons
+  exportar: 'export',
+
+  // toolSchemas — rótulos de suffix (títulos de página / StatTile)
+  Subdomínios: 'Subdomains',
+  'Hosts vivos (HTTP)': 'Live hosts (HTTP)',
+  'DNS resolvido': 'Resolved DNS',
+  'URLs históricas': 'Historical URLs',
+  'Crawling (Katana)': 'Crawling (Katana)',
+  'OSINT (theHarvester)': 'OSINT (theHarvester)',
+  'RDAP (domínio)': 'RDAP (domain)',
+  'RDAP (bloco IP)': 'RDAP (IP block)',
+  'Masscan (portas)': 'Masscan (ports)',
+  'Nmap (serviços)': 'Nmap (services)',
+  'Nikto (findings web)': 'Nikto (web findings)',
+  'Nuclei (vulnerabilidades)': 'Nuclei (vulnerabilities)',
+  'Gobuster (diretórios)': 'Gobuster (directories)',
+  'Kiterunner (rotas de API)': 'Kiterunner (API routes)',
+  'Execuções (jobs)': 'Executions (jobs)',
+  'Wordlists customizadas': 'Custom wordlists',
+
+  // toolSchemas — rótulos de coluna
+  Subdomínio: 'Subdomain',
+  Domínio: 'Domain',
+  Origem: 'Source',
+  Quando: 'When',
+  Vivo: 'Alive',
+  Resolveu: 'Resolved',
+  'Com parâmetros': 'With parameters',
+  Tipo: 'Type',
+  Parâmetro: 'Parameter',
+  Payload: 'Payload',
+  Valor: 'Value',
+  Registrante: 'Registrant',
+  'IP inicial': 'Start IP',
+  'IP final': 'End IP',
+  País: 'Country',
+  Organização: 'Organization',
+  Porta: 'Port',
+  Protocolo: 'Protocol',
+  Estado: 'State',
+  Serviço: 'Service',
+  Produto: 'Product',
+  Versão: 'Version',
+  Descrição: 'Description',
+  Severidade: 'Severity',
+  Caminho: 'Path',
+  Tamanho: 'Size',
+  Componente: 'Component',
+  'Corrigido em': 'Fixed in',
+  'Usuário enumerado: {{username}}': 'Enumerated user: {{username}}',
+  Falhou: 'Failed',
+  'Sem screenshot': 'No screenshot',
+  '(sem título)': '(no title)',
+  Título: 'Title',
+  Tecnologias: 'Technologies',
+  Ferramenta: 'Tool',
+  Alvo: 'Target',
+  Erro: 'Error',
+
+  // SettingsPage (admin-only)
+  Configurações: 'Settings',
+  'restaurar padrão': 'restore default',
+  '•••• (definido — deixe em branco pra não mexer)': '•••• (set — leave blank to keep)',
+  '(não definido)': '(not set)',
+  'Salvo com sucesso.': 'Saved successfully.',
+  Sessão: 'Session',
+  'Upload de wordlists': 'Wordlist uploads',
+  Notificações: 'Notifications',
+  'Monitor & recorrência': 'Monitor & recurrence',
+  'Ferramentas opcionais (Fase 4)': 'Optional tools (Phase 4)',
+  'Integrações externas': 'External integrations',
+  'Timeouts por ferramenta': 'Per-tool timeouts',
+
+  'Validade do token de sessão (dias)': 'Session token validity (days)',
+  'Depois de logar, por quantos dias o token continua valendo sem precisar logar de novo.':
+    'After logging in, how many days the token stays valid before needing to log in again.',
+
+  'Tamanho máximo de wordlist (bytes)': 'Maximum wordlist size (bytes)',
+  'Limite de tamanho de arquivo aceito no upload de wordlist customizada do gobuster.':
+    "Maximum file size accepted when uploading a custom gobuster wordlist.",
+  'Máximo de linhas por wordlist': 'Maximum lines per wordlist',
+  'Wordlists com mais linhas que isso são rejeitadas no upload.': 'Wordlists with more lines than this are rejected on upload.',
+  'Máximo de caracteres por linha': 'Maximum characters per line',
+  'Linhas mais longas que isso na wordlist são rejeitadas no upload.': 'Lines longer than this in the wordlist are rejected on upload.',
+  'Máximo de wordlists por cliente': 'Maximum wordlists per client',
+  'Quantas wordlists customizadas um mesmo cliente pode ter salvas ao mesmo tempo.':
+    'How many custom wordlists a single client can have saved at the same time.',
+  'Timeout do gobuster com wordlist customizada (segundos)': 'Gobuster timeout with a custom wordlist (seconds)',
+  'Wordlist customizada pode ser bem maior que os perfis padrão ("common"/"big"), por isso tem um timeout próprio, mais generoso.':
+    'A custom wordlist can be much larger than the "common"/"big" default profiles, so it gets its own, more generous timeout.',
+
+  'Severidades que disparam notificação': 'Severities that trigger a notification',
+  'Um achado com uma dessas severidades dispara Slack/webhook (hoje gravado por nuclei e dalfox).':
+    'A finding with one of these severities triggers Slack/webhook (currently recorded by nuclei and dalfox).',
+  'Token do bot do Slack': 'Slack bot token',
+  'Token de bot (xoxb-...) com escopo chat:write. Vazio = notificação por Slack desligada.':
+    'Bot token (xoxb-...) with the chat:write scope. Empty = Slack notification off.',
+  'Canal do Slack': 'Slack channel',
+  'ID do canal onde o bot foi adicionado (não o nome — pegue em "Copiar link do canal" no Slack).':
+    'ID of the channel the bot was added to (not the name — get it via "Copy channel link" in Slack).',
+  'URL de webhook genérico': 'Generic webhook URL',
+  'Qualquer URL que aceite POST de JSON — funciona com um Incoming Webhook do Slack, Discord com adaptador, ou um endpoint seu. Pode ser usado junto com o Slack, não é um ou-outro.':
+    'Any URL that accepts a JSON POST — works with a Slack Incoming Webhook, Discord with an adapter, or your own endpoint. Can be used together with Slack, not either/or.',
+  'URL pública do dashboard': 'Public dashboard URL',
+  'Opcional — usada só para montar um link clicável na notificação (ex: http://minha-vps.example.com:3000).':
+    'Optional — only used to build a clickable link in the notification (e.g. http://my-vps.example.com:3000).',
+
+  'Intervalo do monitor de saúde (segundos)': 'Health monitor interval (seconds)',
+  'De quanto em quanto tempo o backend confere cluster OpenSearch, worker Celery, fila e jobs travados. 0 ou negativo desliga o monitor inteiro — nesse caso, religar exige reiniciar o backend (ajustar o intervalo com o monitor já ligado funciona na hora).':
+    'How often the backend checks the OpenSearch cluster, Celery worker, queue, and stuck jobs. 0 or negative turns the monitor off entirely — turning it back on then requires restarting the backend (adjusting the interval while it’s already running takes effect immediately).',
+  'Limite de fila represada': 'Backlog queue threshold',
+  'Número de tarefas pendentes na fila do Celery acima do qual soa alarme de fila represada.':
+    'Number of pending tasks in the Celery queue above which a backlog alarm fires.',
+  'Minutos até considerar um job travado': 'Minutes until a job is considered stuck',
+  'Quanto tempo um job pode ficar "em execução" antes de ser considerado travado (ex: o worker morreu no meio sem atualizar o status).':
+    'How long a job can stay "running" before being considered stuck (e.g. the worker died mid-run without updating the status).',
+  'Intervalo do agendador de recorrência (segundos)': 'Recurrence scheduler interval (seconds)',
+  'De quanto em quanto tempo o backend confere se algum alvo salvo com recorrência está na hora de rodar. 0 ou negativo desliga o agendador inteiro — religar exige reiniciar o backend.':
+    'How often the backend checks whether any saved recurring target is due to run. 0 or negative turns the scheduler off entirely — turning it back on requires restarting the backend.',
+
+  'Gowitness ligado por padrão': 'Gowitness on by default',
+  'Se marcado, um novo scan já sai com o screenshot de cada URL viva marcado no checklist (dá pra mudar por execução — isso só define o estado inicial).':
+    'If checked, a new scan already starts with the screenshot of every live URL checked in the checklist (can be changed per run — this only sets the initial state).',
+  'Dalfox ligado por padrão': 'Dalfox on by default',
+  'Se marcado, um novo scan já sai com o scanner de XSS marcado no checklist (dá pra mudar por execução).':
+    'If checked, a new scan already starts with the XSS scanner checked in the checklist (can be changed per run).',
+  'Kiterunner ligado por padrão': 'Kiterunner on by default',
+  'Se marcado, um novo scan já sai com a descoberta de rotas de API marcada no checklist (dá pra mudar por execução).':
+    'If checked, a new scan already starts with API route discovery checked in the checklist (can be changed per run).',
+  'Linhas da wordlist do kiterunner': 'Kiterunner wordlist lines',
+  'Quantas linhas da wordlist de rotas de API são usadas — menos é mais rápido, mais é mais completo.':
+    'How many lines of the API route wordlist are used — fewer is faster, more is more thorough.',
+
+  'Chave de API do Shodan': 'Shodan API key',
+  'Habilita consulta à Shodan Host API pro IP do domínio raiz, de cada subdomínio e de alvo IP puro. Vazio = desligado, nenhuma chamada é feita. Gere em account.shodan.io (o plano free funciona).':
+    'Enables querying the Shodan Host API for the root domain’s IP, each subdomain’s IP, and plain-IP targets. Empty = off, no calls are made. Generate at account.shodan.io (the free plan works).',
+  'Token de API do Censys': 'Censys API token',
+  'Habilita consulta à Censys Platform API nos mesmos pontos da Shodan — cobertura diferente (um acha o que o outro não acha), os dois podem ficar ligados ao mesmo tempo. Gere em platform.censys.io.':
+    'Enables querying the Censys Platform API at the same points as Shodan — different coverage (one finds what the other doesn’t), both can be on at the same time. Generate at platform.censys.io.',
+  'Token da WPVulnDB (WPScan)': 'WPVulnDB token (WPScan)',
+  'O WPScan roda sempre em toda URL viva, com ou sem token; esse token só habilita cruzar o plugin/tema encontrado com a base de vulnerabilidades (dado de CVE). Gere em wpscan.com/api.':
+    'WPScan always runs on every live URL, with or without a token; this token only enables cross-referencing the found plugin/theme with the vulnerability database (CVE data). Generate at wpscan.com/api.',
+
+  'Tempo máximo (segundos) que a ferramenta pode rodar antes de ser interrompida. Um job com erro "Read timed out" estourou esse valor — não é falha real da ferramenta, só precisa de mais tempo pro alvo em questão.':
+    'Maximum time (seconds) the tool can run before being interrupted. A job with a "Read timed out" error hit this value — it’s not a real tool failure, it just needs more time for that target.',
+  'Tempo máximo (segundos) que a ferramenta pode rodar antes de ser interrompida. Busca dados arquivados/históricos, por isso costuma ser a mais sensível a esse timeout em domínios grandes ou antigos — aumente se o job terminar com erro "Read timed out".':
+    'Maximum time (seconds) the tool can run before being interrupted. It fetches archived/historical data, so it tends to be the most sensitive to this timeout on large or old domains — increase it if the job ends with a "Read timed out" error.',
+
+  'Teto de URLs coletadas pelo wayback': 'Cap on URLs collected by wayback',
+  'Limita quantas URLs o wayback coleta por execução, além do timeout acima — evita que um domínio com histórico gigantesco nunca termine. O que já foi coletado não se perde mesmo se parar no teto.':
+    'Limits how many URLs wayback collects per run, on top of the timeout above — keeps a domain with a huge history from never finishing. Whatever was already collected isn’t lost even if it stops at the cap.',
+
+  'Timeout do assetfinder (segundos)': 'assetfinder timeout (seconds)',
+  'Timeout do subfinder (segundos)': 'subfinder timeout (seconds)',
+  'Timeout do sublist3r (segundos)': 'sublist3r timeout (seconds)',
+  'Timeout do amass (segundos)': 'amass timeout (seconds)',
+  'Timeout do dnsenum (segundos)': 'dnsenum timeout (seconds)',
+  'Timeout do dnsrecon (segundos)': 'dnsrecon timeout (seconds)',
+  'Timeout do rdap (segundos)': 'rdap timeout (seconds)',
+  'Timeout do wayback (segundos)': 'wayback timeout (seconds)',
+  'Timeout do gau (segundos)': 'gau timeout (seconds)',
+  'Timeout do theharvester (segundos)': 'theharvester timeout (seconds)',
+  'Timeout do katana (segundos)': 'katana timeout (seconds)',
+  'Timeout do httpx (segundos)': 'httpx timeout (seconds)',
+  'Timeout do dnsx (segundos)': 'dnsx timeout (seconds)',
+  'Timeout do masscan (segundos)': 'masscan timeout (seconds)',
+  'Timeout do nmap (segundos)': 'nmap timeout (seconds)',
+  'Timeout do nuclei (segundos)': 'nuclei timeout (seconds)',
+  'Timeout do nikto (segundos)': 'nikto timeout (seconds)',
+  'Timeout do wpscan (segundos)': 'wpscan timeout (seconds)',
+  'Timeout do gowitness (segundos)': 'gowitness timeout (seconds)',
+  'Timeout do dalfox (segundos)': 'dalfox timeout (seconds)',
+  'Timeout do kiterunner (segundos)': 'kiterunner timeout (seconds)',
+}

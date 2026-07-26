@@ -1,0 +1,23 @@
+{
+  "index_patterns": ["*-dalfox"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "type":        { "type": "keyword" },
+        "inject_type": { "type": "keyword" },
+        "poc_type":    { "type": "keyword" },
+        "method":      { "type": "keyword" },
+        "url":         { "type": "keyword" },
+        "param":       { "type": "keyword" },
+        "payload":     { "type": "text" },
+        "evidence":    { "type": "text" },
+        "cwe":         { "type": "keyword" },
+        "severity":    { "type": "keyword" },
+        "message":     { "type": "text" }
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "index_patterns": ["*-nuclei"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "template_id": { "type": "keyword" },
+        "name":        { "type": "text" },
+        "severity":    { "type": "keyword" },
+        "host":        { "type": "keyword" },
+        "matched_at":  { "type": "keyword" },
+        "tags":        { "type": "keyword" },
+        "cve":         { "type": "keyword" }
+      }
+    }
+  }
+}

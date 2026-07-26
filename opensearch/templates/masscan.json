@@ -1,0 +1,16 @@
+{
+  "index_patterns": ["*-masscan"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "ip":    { "type": "ip" },
+        "port":  { "type": "integer" },
+        "proto": { "type": "keyword" },
+        "state": { "type": "keyword" }
+      }
+    }
+  }
+}

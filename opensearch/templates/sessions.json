@@ -1,0 +1,17 @@
+{
+  "index_patterns": ["super_recon_sessions"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "token":      { "type": "keyword", "index": false },
+        "user_id":    { "type": "keyword" },
+        "username":   { "type": "keyword" },
+        "role":       { "type": "keyword" },
+        "created_at": { "type": "date" },
+        "expires_at": { "type": "date" }
+      }
+    }
+  }
+}

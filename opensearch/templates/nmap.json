@@ -1,0 +1,21 @@
+{
+  "index_patterns": ["*-nmap"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "ip":       { "type": "ip" },
+        "hostname": { "type": "keyword" },
+        "port":     { "type": "integer" },
+        "protocol": { "type": "keyword" },
+        "state":    { "type": "keyword" },
+        "service":  { "type": "keyword" },
+        "product":  { "type": "keyword" },
+        "version":  { "type": "keyword" },
+        "cpe":      { "type": "keyword" }
+      }
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "policy": {
+    "description": "Retenção curta — índices de alto volume e baixo valor de longo prazo (wayback, katana): expira após __RETENTION_DAYS__ dias.",
+    "default_state": "active",
+    "states": [
+      {
+        "name": "active",
+        "actions": [],
+        "transitions": [
+          { "state_name": "delete", "conditions": { "min_index_age": "__RETENTION_DAYS__d" } }
+        ]
+      },
+      {
+        "name": "delete",
+        "actions": [{ "delete": {} }],
+        "transitions": []
+      }
+    ],
+    "ism_template": {
+      "index_patterns": ["*-wayback", "*-katana"],
+      "priority": 100
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "index_patterns": ["super_recon_settings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "overrides":  { "type": "object", "enabled": false },
+        "updated_at": { "type": "date" },
+        "updated_by": { "type": "keyword" }
+      }
+    }
+  }
+}

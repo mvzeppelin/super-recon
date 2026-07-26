@@ -1,0 +1,18 @@
+{
+  "index_patterns": ["*-rdap-network"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "handle":        { "type": "keyword" },
+        "start_address": { "type": "ip" },
+        "end_address":   { "type": "ip" },
+        "cidr":          { "type": "keyword" },
+        "country":       { "type": "keyword" },
+        "org":           { "type": "text" }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "index_patterns": ["super_recon_users"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "user_id":        { "type": "keyword" },
+        "username":       { "type": "keyword" },
+        "password_hash":  { "type": "keyword", "index": false },
+        "role":           { "type": "keyword" },
+        "disabled":       { "type": "boolean" },
+        "created_at":     { "type": "date" },
+        "updated_at":     { "type": "date" }
+      }
+    }
+  }
+}

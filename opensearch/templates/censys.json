@@ -1,0 +1,22 @@
+{
+  "index_patterns": ["*-censys"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "ip":        { "type": "ip" },
+        "port":      { "type": "integer" },
+        "protocol":  { "type": "keyword" },
+        "transport": { "type": "keyword" },
+        "software":  { "type": "keyword" },
+        "labels":    { "type": "keyword" },
+        "asn":       { "type": "long" },
+        "org":       { "type": "text" },
+        "country":   { "type": "keyword" },
+        "city":      { "type": "keyword" }
+      }
+    }
+  }
+}

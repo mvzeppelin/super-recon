@@ -1,0 +1,17 @@
+{
+  "index_patterns": ["*-httpx"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "url":         { "type": "keyword" },
+        "scheme":      { "type": "keyword" },
+        "host":        { "type": "keyword" },
+        "status_code": { "type": "integer" },
+        "alive":       { "type": "boolean" }
+      }
+    }
+  }
+}

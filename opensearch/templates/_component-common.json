@@ -1,0 +1,14 @@
+{
+  "template": {
+    "mappings": {
+      "properties": {
+        "client":      { "type": "keyword" },
+        "scan_id":     { "type": "keyword" },
+        "target":      { "type": "keyword" },
+        "tool":        { "type": "keyword" },
+        "raw_output":  { "type": "text", "index": false },
+        "@timestamp":  { "type": "date" }
+      }
+    }
+  }
+}

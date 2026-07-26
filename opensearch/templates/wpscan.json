@@ -1,0 +1,20 @@
+{
+  "index_patterns": ["*-wpscan"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "finding_type":       { "type": "keyword" },
+        "component":          { "type": "keyword" },
+        "component_version":  { "type": "keyword" },
+        "title":              { "type": "text" },
+        "fixed_in":           { "type": "keyword" },
+        "url":                { "type": "keyword" },
+        "confidence":         { "type": "integer" },
+        "references":         { "type": "keyword" }
+      }
+    }
+  }
+}

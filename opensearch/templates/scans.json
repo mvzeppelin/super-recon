@@ -1,0 +1,14 @@
+{
+  "index_patterns": ["*-scans"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "targets": { "type": "keyword" },
+        "gobuster_wordlist": { "type": "keyword" }
+      }
+    }
+  }
+}

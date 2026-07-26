@@ -1,0 +1,14 @@
+{
+  "index_patterns": ["*-harvester"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "type":   { "type": "keyword" },
+        "value":  { "type": "keyword" }
+      }
+    }
+  }
+}

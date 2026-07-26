@@ -1,0 +1,18 @@
+{
+  "index_patterns": ["super_recon_audit_log"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "@timestamp":  { "type": "date" },
+        "user_id":     { "type": "keyword" },
+        "username":    { "type": "keyword" },
+        "role":        { "type": "keyword" },
+        "method":      { "type": "keyword" },
+        "path":        { "type": "keyword" },
+        "status_code": { "type": "integer" }
+      }
+    }
+  }
+}

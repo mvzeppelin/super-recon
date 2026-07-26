@@ -1,0 +1,18 @@
+{
+  "index_patterns": ["*-nikto"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "host":        { "type": "keyword" },
+        "port":        { "type": "integer" },
+        "finding_id":  { "type": "keyword" },
+        "description": { "type": "text" },
+        "uri":         { "type": "keyword" },
+        "references":  { "type": "keyword" }
+      }
+    }
+  }
+}

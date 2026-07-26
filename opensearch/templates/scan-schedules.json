@@ -1,0 +1,25 @@
+{
+  "index_patterns": ["*-scan-schedules"],
+  "composed_of": ["recon-common-mappings"],
+  "priority": 100,
+  "template": {
+    "settings": { "number_of_shards": 1, "number_of_replicas": 0 },
+    "mappings": {
+      "properties": {
+        "targets": { "type": "keyword" },
+        "gobuster_wordlist": { "type": "keyword" },
+        "gobuster_custom_wordlist_id": { "type": "keyword" },
+        "enabled": { "type": "boolean" },
+        "periodicity": { "type": "keyword" },
+        "run_time": { "type": "keyword" },
+        "weekday": { "type": "integer" },
+        "day_of_month": { "type": "integer" },
+        "next_run_at": { "type": "date" },
+        "last_run_at": { "type": "date" },
+        "last_scan_id": { "type": "keyword" },
+        "created_at": { "type": "date" },
+        "updated_at": { "type": "date" }
+      }
+    }
+  }
+}

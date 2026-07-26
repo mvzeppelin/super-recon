@@ -1,0 +1,19 @@
+.env
+data/
+__pycache__/
+*.pyc
+.pytest_cache/
+node_modules/
+dist/
+build/
+.venv/
+
+# Configuração local do Claude Code (paths absolutos desta máquina, sem
+# utilidade para quem clonar o repo)
+.claude/
+
+# SO / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
