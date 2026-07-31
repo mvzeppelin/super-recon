@@ -23,6 +23,26 @@ em [SemVer](https://semver.org/lang/pt-BR/) (`MAJOR.MINOR.PATCH`).
    existente; `MAJOR` = mudança que quebra compatibilidade (ex: exige
    migração manual de dado, remove uma rota da API).
 
+## [1.1.1] - 2026-07-31
+
+### Segurança
+- Validação de charset em `client`/`suffix` (rotas da API) contra
+  injeção via wildcard/índice arbitrário do OpenSearch.
+- Filtro de IP/CIDR privado, loopback, link-local e reservado aplicado
+  de forma uniforme em todos os caminhos de disparo de scan (alvo
+  submetido direto e IP resolvido de domínio) — evita SSRF contra a
+  rede interna via alvo malicioso.
+- Defesa adicional (redundante, no próprio módulo) contra path
+  traversal na leitura/gravação de screenshots.
+- Validação de formato de alvo (hostname/IP/CIDR) antes de repassar
+  para as ferramentas de linha de comando.
+- Sanitização de exportação CSV contra injeção de fórmula
+  (Excel/Sheets) em valores vindos do alvo escaneado.
+- Validação do destino de `NOTIFY_WEBHOOK_URL` (ao salvar e a cada
+  disparo) contra SSRF/DNS rebinding.
+- Parsers de XML (nmap, nikto) trocados para `defusedxml`, contra
+  negação de serviço por expansão de entidade.
+
 ## [1.1.0] - 2026-07-26
 
 ### Adicionado

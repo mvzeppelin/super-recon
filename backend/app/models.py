@@ -1,3 +1,4 @@
+import ipaddress
 import re
 from typing import Any, Literal
 
@@ -9,6 +10,43 @@ _RUN_TIME_RE = re.compile(r"^([01]\d|2[0-3]):([0-5]\d)$")
 # semeado também (ver README "Autenticação e usuários": "admin@superRecon"
 # tem mais que isso).
 _MIN_PASSWORD_LENGTH = 8
+
+# `client` vira nome de índice no OpenSearch ("{client}-{suffix}") e path de
+# arquivo (data/wordlists/{client}/, data/screenshots/{client}/) em vários
+# lugares (opensearch_client.py, wordlists.py, screenshots.py) — charset
+# restrito de propósito (auditoria de segurança, ver CHANGELOG): sem isso,
+# um "client" tipo "*" vira glob no nome do índice (lê/lista dados de todos
+# os clientes de uma vez) e um "../../etc" tenta escapar do diretório
+# esperado (path traversal). Mesmo padrão vale pra "suffix" (nome do
+# índice/ferramenta) nas rotas que o recebem como parâmetro de URL — ver
+# _CLIENT_PATTERN/_SUFFIX_PATTERN em main.py, que reusam este regex.
+CLIENT_NAME_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+
+# Hostname (RFC 1123, sem IP) — rótulos alfanuméricos/hífen, até 63 chars
+# cada, até 253 chars no total, nunca começando/terminando com hífen (isso
+# também barra qualquer valor começando com "-", que citando/passar como
+# argumento posicional pra ferramentas tipo masscan/nmap/rdap/dnsenum
+# poderia ser reinterpretado como uma flag da própria ferramenta — ver
+# CHANGELOG). IP/CIDR são validados à parte via ipaddress (aceita os dois
+# jeitos que os alvos hoje já vêm: domínio ou IP/bloco).
+_HOSTNAME_LABEL = r"(?!-)[A-Za-z0-9-]{1,63}(?<!-)"
+_HOSTNAME_RE = re.compile(rf"^(?=.{{1,253}}$){_HOSTNAME_LABEL}(\.{_HOSTNAME_LABEL})*$")
+
+
+def _is_valid_target(value: str) -> bool:
+    try:
+        ipaddress.ip_network(value, strict=False)
+        return True
+    except ValueError:
+        pass
+    return bool(_HOSTNAME_RE.match(value))
+
+
+def _validate_targets(targets: list[str]) -> None:
+    invalid = [t for t in targets if not _is_valid_target(t)]
+    if invalid:
+        raise ValueError(f"alvo(s) inválido(s) (esperado hostname, IP ou CIDR): {invalid}")
+
 
 # Ferramentas selecionáveis por scan (Fase 4 — ver README "Perfis de scan
 # por execução"). A Fase 1 (recon passivo) continua sempre rodando junto,
@@ -22,7 +60,7 @@ def _validate_enabled_tools(value: list[str] | None) -> None:
 
 
 class ScanRequest(BaseModel):
-    client: str = Field(min_length=1)
+    client: str = Field(min_length=1, max_length=64, pattern=CLIENT_NAME_RE.pattern)
     targets: list[str] = Field(min_length=1)
     # "common" (dirb/common.txt, ~4.6k palavras) é o padrão rápido; "big"
     # (dirb/big.txt, ~20k) é mais completo mas bem mais lento no gobuster;
@@ -38,6 +76,7 @@ class ScanRequest(BaseModel):
         if self.gobuster_wordlist == "custom" and not self.gobuster_custom_wordlist_id:
             raise ValueError("gobuster_custom_wordlist_id é obrigatório quando gobuster_wordlist='custom'")
         _validate_enabled_tools(self.enabled_tools)
+        _validate_targets(self.targets)
         return self
 
 
@@ -74,6 +113,7 @@ class RecurringScanRequest(BaseModel):
         if self.gobuster_wordlist == "custom" and not self.gobuster_custom_wordlist_id:
             raise ValueError("gobuster_custom_wordlist_id é obrigatório quando gobuster_wordlist='custom'")
         _validate_enabled_tools(self.enabled_tools)
+        _validate_targets(self.targets)
 
         if not self.enabled:
             return self

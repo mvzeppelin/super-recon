@@ -288,19 +288,27 @@ def subdomain_ip_recon_task(_results, job_ctx: dict, ip: str) -> dict:
     return {"ip": ip}
 
 
-def _is_scannable_ip(ip: str) -> bool:
-    """Descarta IP privado/loopback/link-local — visto na prática com um
-    alvo real (vulnweb.com): um subdomínio ("localhost.vulnweb.com") resolve
-    de propósito para 127.0.0.1. Sem esse filtro, masscan/nmap escaneariam a
-    própria infra de scanning (o container do Kali, ou outros containers na
-    mesma rede docker) em vez do alvo do cliente — um subdomínio malicioso/
-    mal-configurado apontando pra dentro não deve virar porta de entrada
-    pra escanear rede interna."""
+def _is_scannable_target(target: str) -> bool:
+    """Descarta IP/bloco privado/loopback/link-local/reservado — visto na
+    prática com um alvo real (vulnweb.com): um subdomínio
+    ("localhost.vulnweb.com") resolve de propósito para 127.0.0.1. Sem esse
+    filtro, masscan/nmap/rdap/shodan/censys escaneariam ou consultariam a
+    própria infra de scanning (o container do Kali, outros containers na
+    mesma rede docker, ou até um endpoint de metadados de nuvem tipo
+    169.254.169.254) em vez do alvo do cliente — um subdomínio malicioso/
+    mal-configurado (ou um alvo IP/CIDR digitado direto em POST /scans) não
+    deve virar porta de entrada pra escanear rede interna (SSRF). Aceita
+    tanto um IP único quanto um bloco CIDR — ipaddress.ip_network cobre os
+    dois (strict=False porque um IP "puro" como "1.2.3.4" não é, por si só,
+    um endereço de rede válido em modo estrito)."""
     try:
-        addr = ipaddress.ip_address(ip)
+        network = ipaddress.ip_network(target, strict=False)
     except ValueError:
         return False
-    return not (addr.is_private or addr.is_loopback or addr.is_link_local or addr.is_reserved or addr.is_multicast)
+    return not (
+        network.is_private or network.is_loopback or network.is_link_local
+        or network.is_reserved or network.is_multicast
+    )
 
 
 def _dispatch_subdomain_ip_recon(job_ctx: dict, target: str) -> None:
@@ -312,14 +320,14 @@ def _dispatch_subdomain_ip_recon(job_ctx: dict, target: str) -> None:
     (não pelo hostname) evita escanear a mesma máquina várias vezes — comum
     vários subdomínios resolverem pro mesmo host/CDN. Exclui o IP do domínio
     raiz (já coberto pelo nmap/rdap_network da Fase 3) e qualquer IP não
-    roteável publicamente (ver _is_scannable_ip); no-op para alvo IP puro
-    (esse fluxo não roda dnsx, então query_dnsx_ips já devolve vazio)."""
+    roteável publicamente (ver _is_scannable_target); no-op para alvo IP
+    puro (esse fluxo não roda dnsx, então query_dnsx_ips já devolve vazio)."""
     client_name = job_ctx["client"]
     ips = opensearch_client.query_dnsx_ips(client_name, target)
     if not util.is_ip_or_cidr(target):
         ips.discard(util.resolve_ip(target))
 
-    skipped = {ip for ip in ips if not _is_scannable_ip(ip)}
+    skipped = {ip for ip in ips if not _is_scannable_target(ip)}
     if skipped:
         logger.warning(
             "ignorando IP(s) não-públicos resolvidos por subdomínio de %s (cliente=%s): %s",
@@ -485,6 +493,17 @@ def phase2_domain_task(_results, job_ctx: dict, domain: str) -> dict:
     ]
 
     ip = util.resolve_ip(domain)
+    if ip and not _is_scannable_target(ip):
+        # Domínio resolve pra IP privado/loopback/interno (ver
+        # _is_scannable_target) — ex: um subdomínio malicioso/mal-configurado
+        # tipo "localhost.alvo.com" apontando pra 127.0.0.1. httpx/dnsx da
+        # Fase 3 acima continuam rodando normalmente (operam no hostname, não
+        # no IP cru); só nmap/rdap_network/shodan/censys nesse IP são pulados.
+        logger.warning(
+            "ignorando IP não-público resolvido pro domínio raiz %s (cliente=%s): %s",
+            domain, client_name, ip,
+        )
+        ip = None
     if ip:
         phase3.append(run_tool_task.s(job_ctx, "nmap", ip, job_id=_queue_job(job_ctx, "nmap", ip)))
         phase3.append(
@@ -520,9 +539,20 @@ def phase2_ip_task(_results, job_ctx: dict, ip: str) -> dict:
 
 @celery_app.task(name="recon.orchestrate_scan")
 def orchestrate_scan_task(job_ctx: dict, targets: list[str]) -> dict:
-    dispatched = {"domains": [], "ips": []}
+    dispatched = {"domains": [], "ips": [], "rejected": []}
     for target in targets:
         if util.is_ip_or_cidr(target):
+            if not _is_scannable_target(target):
+                # Alvo IP/CIDR não-público submetido direto (ex: 127.0.0.1,
+                # 169.254.169.254, 10.0.0.0/8) — ver _is_scannable_target.
+                # Não derruba o scan inteiro: só esse alvo é ignorado, os
+                # demais (se houver) seguem normalmente.
+                logger.warning(
+                    "ignorando alvo IP/CIDR não-público submetido diretamente (cliente=%s): %s",
+                    job_ctx["client"], target,
+                )
+                dispatched["rejected"].append(target)
+                continue
             phase1_tasks = [
                 run_tool_task.s(job_ctx, "rdap_network", target, job_id=_queue_job(job_ctx, "rdap_network", target)),
                 run_tool_task.s(job_ctx, "masscan", target, job_id=_queue_job(job_ctx, "masscan", target)),

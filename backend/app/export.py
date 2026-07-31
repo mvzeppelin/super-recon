@@ -156,6 +156,22 @@ def export_json(
 # CSV
 # --------------------------------------------------------------------------
 
+# Blindagem contra injeção de fórmula em CSV (auditoria de segurança): campo
+# de achado (banner do nmap, descrição do nikto, plugin do wpscan etc.) vem
+# do **alvo escaneado**, não do operador — um alvo malicioso pode plantar um
+# valor tipo "=cmd|'/c calc'!A1" numa resposta HTTP/banner de serviço, que
+# vira fórmula executável se o CSV for aberto no Excel/Sheets. Prefixar com
+# apóstrofo é a mitigação padrão (OWASP): o Excel/Sheets exibe a apóstrofo +
+# o texto como texto puro, nunca avalia como fórmula.
+_CSV_FORMULA_PREFIXES = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_safe(value):
+    if isinstance(value, str) and value.startswith(_CSV_FORMULA_PREFIXES):
+        return "'" + value
+    return value
+
+
 def _docs_to_csv(docs: list[dict]) -> bytes:
     if not docs:
         return b""
@@ -172,7 +188,7 @@ def _docs_to_csv(docs: list[dict]) -> bytes:
     writer.writeheader()
     for doc in docs:
         row = {
-            k: (json.dumps(v, ensure_ascii=False) if isinstance(v, (list, dict)) else v)
+            k: _csv_safe(json.dumps(v, ensure_ascii=False) if isinstance(v, (list, dict)) else v)
             for k, v in doc.items()
         }
         writer.writerow(row)

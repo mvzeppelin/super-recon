@@ -2,7 +2,7 @@ import logging
 
 import requests
 
-from . import config
+from . import config, util
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +45,16 @@ def _send_slack(message: str) -> None:
 
 
 def _send_webhook(payload: dict) -> None:
+    # Revalida a cada disparo, não só quando a URL foi salva (ver
+    # settings_registry.py) — defesa contra TOCTOU: o hostname podia
+    # resolver pra um IP público na hora de salvar e pra um IP interno
+    # depois (DNS que o admin não controla), ver util.is_safe_webhook_url.
+    if not util.is_safe_webhook_url(config.NOTIFY_WEBHOOK_URL):
+        logger.error(
+            "NOTIFY_WEBHOOK_URL não passa mais na checagem de segurança (SSRF) — notificação não enviada. "
+            "Revise o valor na tela Configurações."
+        )
+        return
     resp = requests.post(config.NOTIFY_WEBHOOK_URL, json=payload, timeout=_HTTP_TIMEOUT)
     resp.raise_for_status()
 

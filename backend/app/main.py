@@ -3,13 +3,15 @@ import logging
 import re
 import uuid
 from datetime import datetime, timezone
+from typing import Annotated
 
-from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Path, Query, Request, UploadFile
 from fastapi.responses import JSONResponse, Response
 
 from . import auth, compare as compare_mod, config, docker_runner, export as export_mod, login_throttle, opensearch_client, recurrence, settings_registry, tasks, util
 from . import health_monitor, recurrence_scheduler, screenshots as screenshots_mod, wordlists as wordlists_mod
 from .models import (
+    CLIENT_NAME_RE,
     PHASE4_TOOLS,
     ChangePasswordRequest,
     CreateUserRequest,
@@ -26,7 +28,19 @@ from .models import (
     UserResponse,
 )
 
-app = FastAPI(title="super-recon orchestrator", version="1.1.0")
+# `client`/`suffix` viram nome de índice no OpenSearch e path de arquivo em
+# vários lugares — charset restrito aqui, na borda da API, fecha de uma vez
+# (pra toda rota que os recebe como parâmetro de URL) o que um valor tipo
+# "*" ou "../../etc" conseguiria fazer rio abaixo (ler/apagar dados de
+# outro cliente via glob no índice, ou escapar do diretório esperado — ver
+# CHANGELOG). Mesmo regex de ScanRequest.client (models.py), reusado aqui
+# pros parâmetros de rota. "suffix" é sempre minúsculo na prática (nome de
+# ferramenta/índice), mas aceita o mesmo charset por simplicidade.
+ClientPath = Annotated[str, Path(pattern=CLIENT_NAME_RE.pattern)]
+ClientQuery = Annotated[str, Query(pattern=CLIENT_NAME_RE.pattern)]
+SuffixPath = Annotated[str, Path(pattern=CLIENT_NAME_RE.pattern)]
+
+app = FastAPI(title="super-recon orchestrator", version="1.1.1")
 
 # ?token= (usado pelos links de export/screenshot, ver _extract_token) é uma
 # credencial de sessão em texto puro — sem isso, ela vai inteira pro log de
@@ -423,7 +437,7 @@ def scan_defaults():
 
 
 @app.get("/scans/{scan_id}")
-def get_scan(scan_id: str, client: str):
+def get_scan(scan_id: str, client: ClientQuery):
     jobs = opensearch_client.query_jobs(client, scan_id)
     if not jobs:
         raise HTTPException(status_code=404, detail="scan não encontrado (ou ainda não gerou nenhum resultado)")
@@ -436,7 +450,7 @@ def list_clients():
 
 
 @app.get("/clients/{client}/scans")
-def list_scans(client: str):
+def list_scans(client: ClientPath):
     """Histórico de scans do cliente (scan_id + alvos + data de disparo +
     duration_seconds) — usado para popular o seletor "scan" nas telas de
     achados/execuções, já que o mesmo alvo pode ser escaneado de novo em
@@ -445,7 +459,7 @@ def list_scans(client: str):
 
 
 @app.delete("/clients/{client}/scans/{scan_id}", dependencies=[Depends(require_role("admin", "operator"))])
-def delete_scan(client: str, scan_id: str):
+def delete_scan(client: ClientPath, scan_id: str):
     """Remove um scan inteiro: o registro do scan e todos os achados/jobs
     desse scan_id, em todos os índices do cliente. Diferente de
     /clients/{client}/{suffix}/delete (que apaga achados específicos de um
@@ -457,7 +471,7 @@ def delete_scan(client: str, scan_id: str):
 
 
 @app.post("/clients/{client}/wordlists", dependencies=[Depends(require_role("admin", "operator"))])
-async def upload_wordlist(client: str, file: UploadFile = File(...)):
+async def upload_wordlist(client: ClientPath, file: UploadFile = File(...)):
     """Upload de wordlist customizada para o gobuster. Sempre validado antes
     de gravar (tamanho, quantidade de linhas, conteúdo texto puro, limite de
     wordlists por cliente) — ver wordlists.py para o detalhe de cada limite e
@@ -473,19 +487,19 @@ async def upload_wordlist(client: str, file: UploadFile = File(...)):
 
 
 @app.get("/clients/{client}/wordlists")
-def list_wordlists(client: str):
+def list_wordlists(client: ClientPath):
     return wordlists_mod.list_wordlists(client)
 
 
 @app.delete("/clients/{client}/wordlists/{wordlist_id}", dependencies=[Depends(require_role("admin", "operator"))])
-def delete_wordlist(client: str, wordlist_id: str):
+def delete_wordlist(client: ClientPath, wordlist_id: str):
     if not wordlists_mod.delete_wordlist(client, wordlist_id):
         raise HTTPException(status_code=404, detail="wordlist não encontrada")
     return {"client": client, "wordlist_id": wordlist_id, "status": "deleted"}
 
 
 @app.get("/clients/{client}/screenshots/{screenshot_id}")
-def get_screenshot(client: str, screenshot_id: str):
+def get_screenshot(client: ClientPath, screenshot_id: str):
     """Serve o screenshot do gowitness (ver screenshots.py) — escopado ao
     cliente na própria estrutura de diretório (nunca lê o id de outro
     cliente, mesmo que o id seja válido)."""
@@ -533,7 +547,7 @@ def _build_recurring_scan_doc(
 
 
 @app.post("/clients/{client}/recurring-scans", dependencies=[Depends(require_role("admin", "operator"))])
-def create_recurring_scan(client: str, req: RecurringScanRequest):
+def create_recurring_scan(client: ClientPath, req: RecurringScanRequest):
     if req.gobuster_wordlist == "custom" and not opensearch_client.get_wordlist(client, req.gobuster_custom_wordlist_id):
         raise HTTPException(status_code=404, detail="wordlist customizada não encontrada para esse cliente")
     schedule_id = uuid.uuid4().hex
@@ -543,12 +557,12 @@ def create_recurring_scan(client: str, req: RecurringScanRequest):
 
 
 @app.get("/clients/{client}/recurring-scans")
-def list_recurring_scans(client: str):
+def list_recurring_scans(client: ClientPath):
     return opensearch_client.list_recurring_scans(client)
 
 
 @app.put("/clients/{client}/recurring-scans/{schedule_id}", dependencies=[Depends(require_role("admin", "operator"))])
-def update_recurring_scan(client: str, schedule_id: str, req: RecurringScanRequest):
+def update_recurring_scan(client: ClientPath, schedule_id: str, req: RecurringScanRequest):
     existing = opensearch_client.get_recurring_scan(client, schedule_id)
     if not existing:
         raise HTTPException(status_code=404, detail="alvo salvo não encontrado")
@@ -563,7 +577,7 @@ def update_recurring_scan(client: str, schedule_id: str, req: RecurringScanReque
 
 
 @app.delete("/clients/{client}/recurring-scans/{schedule_id}", dependencies=[Depends(require_role("admin", "operator"))])
-def delete_recurring_scan(client: str, schedule_id: str):
+def delete_recurring_scan(client: ClientPath, schedule_id: str):
     if not opensearch_client.delete_recurring_scan_doc(client, schedule_id):
         raise HTTPException(status_code=404, detail="alvo salvo não encontrado")
     return {"client": client, "schedule_id": schedule_id, "status": "deleted"}
@@ -573,7 +587,7 @@ def delete_recurring_scan(client: str, schedule_id: str):
     "/clients/{client}/recurring-scans/{schedule_id}/run-now",
     dependencies=[Depends(require_role("admin", "operator"))],
 )
-def run_recurring_scan_now(client: str, schedule_id: str):
+def run_recurring_scan_now(client: ClientPath, schedule_id: str):
     """Dispara imediatamente os alvos salvos, sem tocar no agendamento —
     idêntico ao create_scan(), só que reaproveitando um alvo já salvo em vez
     de vir do formulário de "novo recon"."""
@@ -605,7 +619,7 @@ def active_jobs():
 
 
 @app.get("/clients/{client}/indices")
-def list_client_indices(client: str):
+def list_client_indices(client: ClientPath):
     indices = opensearch_client.list_client_indices(client)
     if not indices:
         raise HTTPException(status_code=404, detail="cliente sem dados indexados")
@@ -639,7 +653,7 @@ def _export_response(
 
 
 @app.get("/clients/{client}/export")
-def export_client(client: str, format: str = "json"):
+def export_client(client: ClientPath, format: str = "json"):
     """Exporta TODOS os achados do cliente (todas as ferramentas/índices).
     CSV nesse nível vem como um .zip (um CSV por índice — schemas diferentes
     não cabem num CSV só). PDF tem um teto de linhas por seção; use JSON/CSV
@@ -651,7 +665,7 @@ def export_client(client: str, format: str = "json"):
 
 @app.get("/clients/{client}/{suffix}/export")
 def export_suffix(
-    client: str, suffix: str, request: Request, format: str = "json", q: str | None = None, unique: bool = False,
+    client: ClientPath, suffix: SuffixPath, request: Request, format: str = "json", q: str | None = None, unique: bool = False,
 ):
     """Exporta os achados de uma única ferramenta/índice do cliente — aceita
     os mesmos filtros de GET /clients/{client}/{suffix} (q + qualquer outro
@@ -664,7 +678,7 @@ def export_suffix(
 
 
 @app.delete("/clients/{client}", dependencies=[Depends(require_role("admin"))])
-def delete_client(client: str):
+def delete_client(client: ClientPath):
     """Apaga todos os índices do cliente ({client}-*) no OpenSearch. Não
     cancela scans em andamento na fila — só remove os dados já indexados."""
     # Antes de apagar o índice de metadados: sem isso, os arquivos de
@@ -679,7 +693,7 @@ def delete_client(client: str):
 
 
 @app.post("/clients/{client}/clear", dependencies=[Depends(require_role("admin"))])
-def clear_client_data(client: str):
+def clear_client_data(client: ClientPath):
     """Apaga achados e histórico de execuções do cliente, mas o cliente
     continua existindo (some do dashboard só o que já foi indexado; o nome
     continua na lista de clientes, zerado, como se fosse recém-criado). Não
@@ -693,14 +707,14 @@ def clear_client_data(client: str):
 
 
 @app.get("/clients/{client}/jobs/summary")
-def jobs_summary(client: str):
+def jobs_summary(client: ClientPath):
     """Contagem de execuções por status (total, ok, error, cancelled,
     running, queued) — alimenta o quadro de execuções do painel do cliente."""
     return opensearch_client.jobs_summary(client)
 
 
 @app.post("/clients/{client}/jobs/{job_id}/cancel", dependencies=[Depends(require_role("admin", "operator"))])
-def cancel_job(client: str, job_id: str):
+def cancel_job(client: ClientPath, job_id: str):
     """Cancela uma execução específica: em andamento (mata o container) ou
     ainda esperando na fila (nunca chega a rodar)."""
     job = opensearch_client.get_job(client, job_id)
@@ -715,7 +729,7 @@ def cancel_job(client: str, job_id: str):
 
 
 @app.post("/clients/{client}/jobs/cancel-all", dependencies=[Depends(require_role("admin", "operator"))])
-def cancel_all_jobs(client: str):
+def cancel_all_jobs(client: ClientPath):
     """Cancela todas as execuções em andamento ou pendentes desse cliente.
 
     Matar só os jobs já visíveis nesse instante não basta: o pipeline é
@@ -739,7 +753,7 @@ def cancel_all_jobs(client: str):
 
 
 @app.get("/clients/{client}/ip-provenance")
-def ip_provenance(client: str, ip: str, scan_id: str):
+def ip_provenance(client: ClientPath, ip: str, scan_id: str):
     """De onde veio esse IP dentro do scan — pra achados por IP (nmap,
     masscan, rdap-network, shodan, censys) não aparecerem soltos sem
     explicação (ex: um IP cujo PTR não bate com o domínio do cliente).
@@ -778,7 +792,7 @@ def ip_provenance(client: str, ip: str, scan_id: str):
 
 
 @app.get("/clients/{client}/risk-report")
-def get_risk_report(client: str, format: str = "json"):
+def get_risk_report(client: ClientPath, format: str = "json"):
     """Relatório executivo (score de risco agregado — ver risk_score.py para
     a metodologia). Declarado ANTES de GET /clients/{client}/{suffix} pelo
     mesmo motivo do ip-provenance/asset acima (mesmo formato de path de 2
@@ -797,7 +811,7 @@ def get_risk_report(client: str, format: str = "json"):
 
 
 @app.get("/clients/{client}/asset")
-def get_asset(client: str, value: str):
+def get_asset(client: ClientPath, value: str):
     """Tudo que qualquer ferramenta achou sobre um valor exato (subdomínio,
     IP ou URL), consolidado num só lugar — sem isso, ver tudo sobre um
     mesmo host exige abrir cada tela de achados por ferramenta e buscar o
@@ -809,7 +823,7 @@ def get_asset(client: str, value: str):
 
 
 @app.get("/clients/{client}/{suffix}")
-def get_findings(client: str, suffix: str, request: Request, q: str | None = None, page: int = 1, size: int = 25, sort: str = "-@timestamp"):
+def get_findings(client: ClientPath, suffix: SuffixPath, request: Request, q: str | None = None, page: int = 1, size: int = 25, sort: str = "-@timestamp"):
     sort_field = sort.lstrip("-")
     sort_order = "desc" if sort.startswith("-") else "asc"
     filters = _filters_from_query(request)
@@ -819,7 +833,7 @@ def get_findings(client: str, suffix: str, request: Request, q: str | None = Non
 
 
 @app.get("/clients/{client}/{suffix}/severity-summary")
-def get_severity_summary(client: str, suffix: str, request: Request, q: str | None = None):
+def get_severity_summary(client: ClientPath, suffix: SuffixPath, request: Request, q: str | None = None):
     """Contagem de achados por severidade (nuclei/dalfox) — alimenta o
     gráfico de distribuição na tela de achados, respeitando os mesmos
     filtros já ativos na tabela (tool/scan/status)."""
@@ -828,7 +842,7 @@ def get_severity_summary(client: str, suffix: str, request: Request, q: str | No
 
 
 @app.post("/clients/{client}/{suffix}/delete", dependencies=[Depends(require_role("admin", "operator"))])
-def delete_findings(client: str, suffix: str, req: DeleteFindingsRequest):
+def delete_findings(client: ClientPath, suffix: SuffixPath, req: DeleteFindingsRequest):
     """Remove achados específicos pelo _id (ex: descartar um falso positivo),
     sem afetar o resto do índice. Não vale para "jobs"/"scans": um job em
     andamento precisa ser cancelado (POST .../jobs/{job_id}/cancel), não
@@ -841,7 +855,7 @@ def delete_findings(client: str, suffix: str, req: DeleteFindingsRequest):
 
 
 @app.get("/clients/{client}/{suffix}/compare")
-def compare_scans(client: str, suffix: str, from_scan: str, to_scan: str):
+def compare_scans(client: ClientPath, suffix: SuffixPath, from_scan: str, to_scan: str):
     """"O que mudou desde a última vez": compara os achados de dois scans do
     mesmo índice — o que é novo (só no scan mais recente), o que "sumiu" (só
     no mais antigo — ex: vulnerabilidade corrigida, subdomínio desativado) e

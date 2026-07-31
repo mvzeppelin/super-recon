@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from app import config, settings_registry
 
 
@@ -86,3 +88,30 @@ def test_effective_view_never_leaks_secret_value(monkeypatch):
     assert "default" not in entry
     assert entry["is_set"] is True
     assert "super-secret-value" not in str(entry)
+
+
+# ---- NOTIFY_WEBHOOK_URL (check="webhook_url" — defesa contra SSRF, ver util.is_safe_webhook_url) ----
+
+
+def test_validate_webhook_url_accepts_safe_url():
+    with patch.object(settings_registry.util, "is_safe_webhook_url", return_value=True):
+        assert settings_registry.validate("NOTIFY_WEBHOOK_URL", "https://hooks.example.com/x") == (
+            "https://hooks.example.com/x"
+        )
+
+
+def test_validate_webhook_url_rejects_unsafe_url():
+    with patch.object(settings_registry.util, "is_safe_webhook_url", return_value=False):
+        try:
+            settings_registry.validate("NOTIFY_WEBHOOK_URL", "http://169.254.169.254/")
+            assert False, "devia ter levantado ValueError"
+        except ValueError as e:
+            assert "SSRF" in str(e)
+
+
+def test_validate_webhook_url_allows_blank_to_clear_field():
+    # Campo em branco (desligar a notificação) não deve disparar a checagem
+    # de SSRF — não há URL nenhuma pra resolver.
+    with patch.object(settings_registry.util, "is_safe_webhook_url") as mock_check:
+        assert settings_registry.validate("NOTIFY_WEBHOOK_URL", "") == ""
+    mock_check.assert_not_called()

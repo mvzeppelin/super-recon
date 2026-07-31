@@ -19,7 +19,7 @@ forma.
 
 from typing import Any
 
-from . import config
+from . import config, util
 
 # type: "int" | "bool" | "str" | "csv_set"
 # secret=True: nunca devolvido em texto por effective_view() — só
@@ -38,7 +38,9 @@ SETTINGS = [
     {"key": "NOTIFY_SEVERITIES", "group": "notifications", "type": "csv_set"},
     {"key": "SLACK_BOT_TOKEN", "group": "notifications", "type": "str", "secret": True},
     {"key": "SLACK_CHANNEL", "group": "notifications", "type": "str"},
-    {"key": "NOTIFY_WEBHOOK_URL", "group": "notifications", "type": "str"},
+    # "check": "webhook_url" -> valida.py também recusa destino interno/
+    # privado (SSRF, ver util.is_safe_webhook_url).
+    {"key": "NOTIFY_WEBHOOK_URL", "group": "notifications", "type": "str", "check": "webhook_url"},
     {"key": "PUBLIC_BASE_URL", "group": "notifications", "type": "str"},
     # ---- monitor de saúde / recorrência (<=0 desliga o loop, sem min) ----
     {"key": "HEALTH_CHECK_INTERVAL_SECONDS", "group": "monitoring", "type": "int"},
@@ -126,6 +128,10 @@ def validate(key: str, value: Any) -> Any:
     if kind == "str":
         if not isinstance(value, str):
             raise ValueError(f"{key}: esperado texto")
+        if entry.get("check") == "webhook_url" and value and not util.is_safe_webhook_url(value):
+            raise ValueError(
+                f"{key}: URL inválida ou aponta pra rede interna/privada (não permitido — risco de SSRF)"
+            )
         return value
 
     if kind == "csv_set":

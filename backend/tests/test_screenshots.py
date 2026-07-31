@@ -1,5 +1,7 @@
 import os
 
+import pytest
+
 from app import config, screenshots
 
 
@@ -68,3 +70,27 @@ def test_delete_client_screenshots_removes_directory(tmp_path, monkeypatch):
 def test_delete_client_screenshots_is_noop_when_nothing_exists(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "SCREENSHOTS_DIR", str(tmp_path))
     screenshots.delete_client_screenshots("never-existed")  # não deve levantar exceção
+
+
+# ---- client_name (defesa em profundidade contra path traversal — este
+# módulo nunca deve confiar cegamente em quem chamou já ter validado) ----
+
+
+def test_persist_raises_for_invalid_client_name_when_source_exists(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "SCREENSHOTS_DIR", str(tmp_path))
+    source = tmp_path / "source.jpeg"
+    source.write_bytes(b"fake-jpeg-bytes")
+
+    with pytest.raises(ValueError, match="cliente inválido"):
+        screenshots.persist("../../etc", str(source))
+
+
+def test_resolve_rejects_path_traversal_client_name(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "SCREENSHOTS_DIR", str(tmp_path))
+    assert screenshots.resolve("../../etc", "a" * 32) is None
+
+
+def test_delete_client_screenshots_rejects_invalid_client_name(tmp_path, monkeypatch):
+    monkeypatch.setattr(config, "SCREENSHOTS_DIR", str(tmp_path))
+    with pytest.raises(ValueError, match="cliente inválido"):
+        screenshots.delete_client_screenshots("../../etc")

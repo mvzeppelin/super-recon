@@ -82,3 +82,61 @@ def test_recurring_scan_request_enabled_tools_unknown_tool_fails():
     # a checagem de enabled_tools não pode ficar atrás do "if not enabled".
     with pytest.raises(ValidationError, match="enabled_tools"):
         RecurringScanRequest(targets=["acme.com"], enabled=False, enabled_tools=["nuclei", "sqlmap"])
+
+
+# ---- client (charset — evita IDOR/wildcard via path/query em main.py) ----
+
+
+def test_scan_request_client_accepts_charset():
+    req = ScanRequest(client="acme-Corp_1", targets=["acme.com"])
+    assert req.client == "acme-Corp_1"
+
+
+def test_scan_request_client_rejects_wildcard():
+    with pytest.raises(ValidationError, match="client"):
+        ScanRequest(client="*", targets=["acme.com"])
+
+
+def test_scan_request_client_rejects_path_traversal():
+    with pytest.raises(ValidationError, match="client"):
+        ScanRequest(client="../../etc", targets=["acme.com"])
+
+
+def test_scan_request_client_rejects_slash():
+    with pytest.raises(ValidationError, match="client"):
+        ScanRequest(client="acme/other", targets=["acme.com"])
+
+
+# ---- targets (hostname/IP/CIDR — evita CWE-88 argument injection em commands.py) ----
+
+
+def test_scan_request_targets_accepts_hostname():
+    req = ScanRequest(client="acme", targets=["acme.com"])
+    assert req.targets == ["acme.com"]
+
+
+def test_scan_request_targets_accepts_ip():
+    req = ScanRequest(client="acme", targets=["8.8.8.8"])
+    assert req.targets == ["8.8.8.8"]
+
+
+def test_scan_request_targets_accepts_cidr():
+    req = ScanRequest(client="acme", targets=["8.8.8.0/24"])
+    assert req.targets == ["8.8.8.0/24"]
+
+
+def test_scan_request_targets_rejects_flag_like_value():
+    # Um valor começando com "-" nunca deve chegar em commands.build() —
+    # rejeitado aqui, na borda, antes de virar argumento de linha de comando.
+    with pytest.raises(ValidationError, match="alvo"):
+        ScanRequest(client="acme", targets=["--script=evil"])
+
+
+def test_scan_request_targets_rejects_shell_metacharacters():
+    with pytest.raises(ValidationError, match="alvo"):
+        ScanRequest(client="acme", targets=["acme.com; rm -rf /"])
+
+
+def test_recurring_scan_request_targets_rejects_invalid():
+    with pytest.raises(ValidationError, match="alvo"):
+        RecurringScanRequest(targets=["--evil"], enabled=False)

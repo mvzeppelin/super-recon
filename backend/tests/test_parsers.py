@@ -1,3 +1,6 @@
+import defusedxml.common
+import pytest
+
 from parsers import (
     amass,
     assetfinder,
@@ -451,6 +454,25 @@ def test_nikto():
     assert docs[0]["host"] == "businesscorp.com.br"
     assert docs[0]["port"] == 80
     assert docs[0]["uri"] == "/"
+
+
+def test_nmap_rejects_xml_entity_expansion_dos():
+    # Auditoria de segurança: defusedxml.ElementTree (troca do
+    # xml.etree.ElementTree stdlib) recusa a expansão de entidades ("billion
+    # laughs") em vez de consumir memória sem limite — um alvo malicioso
+    # controlando a resposta de banner/serviço não deve conseguir derrubar o
+    # worker via XML forjado. Rejeita com exceção, não silenciosamente.
+    raw = """<?xml version="1.0"?>
+<!DOCTYPE nmaprun [
+<!ENTITY lol "lol">
+<!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">
+]>
+<nmaprun scanner="nmap">
+<host><address addr="&lol2;" addrtype="ipv4"/></host>
+</nmaprun>
+"""
+    with pytest.raises(defusedxml.common.EntitiesForbidden):
+        nmap.parse(raw, client=CLIENT, scan_id=SCAN_ID, target="192.168.15.1")
 
 
 def test_nuclei():

@@ -4,26 +4,34 @@ from app import tasks
 
 
 def test_is_scannable_ip_accepts_public_address():
-    assert tasks._is_scannable_ip("44.228.249.3") is True
+    assert tasks._is_scannable_target("44.228.249.3") is True
 
 
 def test_is_scannable_ip_rejects_loopback():
     # Achado na prática com vulnweb.com: um subdomínio ("localhost.vulnweb.com")
     # resolve de propósito para 127.0.0.1.
-    assert tasks._is_scannable_ip("127.0.0.1") is False
+    assert tasks._is_scannable_target("127.0.0.1") is False
 
 
 def test_is_scannable_ip_rejects_private_range():
-    assert tasks._is_scannable_ip("10.0.0.5") is False
-    assert tasks._is_scannable_ip("192.168.1.1") is False
+    assert tasks._is_scannable_target("10.0.0.5") is False
+    assert tasks._is_scannable_target("192.168.1.1") is False
 
 
 def test_is_scannable_ip_rejects_link_local():
-    assert tasks._is_scannable_ip("169.254.1.1") is False
+    assert tasks._is_scannable_target("169.254.1.1") is False
 
 
 def test_is_scannable_ip_rejects_malformed():
-    assert tasks._is_scannable_ip("not-an-ip") is False
+    assert tasks._is_scannable_target("not-an-ip") is False
+
+
+def test_is_scannable_target_accepts_public_cidr():
+    assert tasks._is_scannable_target("44.228.249.0/24") is True
+
+
+def test_is_scannable_target_rejects_private_cidr():
+    assert tasks._is_scannable_target("10.0.0.0/8") is False
 
 
 def _job_ctx():
